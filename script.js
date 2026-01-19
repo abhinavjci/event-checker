@@ -4,6 +4,7 @@ const table = document.getElementById("ctl00_CPH_rgED_GridData");
 // Counter
 let totalEvents = 0;
 let errorCounts = 0;
+let warningCounts = 0;
 
 // Lists
 // Contractors to ignore when no Operative is assigned to the event
@@ -17,6 +18,17 @@ const remarksIgnoreList = ["Jeff", "Duplicate", "Modern Niagara"];
 
 // Contractors who are always "Out of Scope"
 const outOfScopeContractors = ["Humber IT", "Support Services", "GE", "Bio-Medical", "Security"];
+
+// Dictionary/Object to map the regular and most common services
+const eventMapper = {
+    "Toilet Blocked": "Urgent AF",
+    "Out of Scope": "Inspect",
+    "Office Furniture (Desks, Chairs, Tables, Cabinet)": "Routine SF",
+    "Nurse Call": "Urgent SF",
+    "Fridge/Freezer": "Urgent SF",
+    "Sterilizers": "Urgent SF",
+    "Room Too Hot": "Routine SF"
+}
 
 // Main Function to handle all the errors in the events
 table.querySelectorAll("tr").forEach((row, index) => {
@@ -54,10 +66,10 @@ table.querySelectorAll("tr").forEach((row, index) => {
     if (
         remarks === "" ||
         remarks === "\u00A0"
-    ) { mark(remarksCell, "error"); }
+    ) { mark(remarksCell, "error", true); }
 
     // Logic 2: Checking the missing operative with the condition (was even required or not)
-    else if (
+    if (
         operative === "\u00A0" ||
         operative === ""
     ) {
@@ -69,7 +81,7 @@ table.querySelectorAll("tr").forEach((row, index) => {
             // Remarks doesn't satify that operative was informed
             !remarksIgnoreList.some(word => remarks.includes(word))
             // Then it's a Flag
-        ) { mark(operativeCell, "error"); }
+        ) { mark(operativeCell, "error", true); }
     }
 
     // Logic 3: Temperature events
@@ -84,7 +96,7 @@ table.querySelectorAll("tr").forEach((row, index) => {
             mark(remarksCell); 
         }
         
-        else { mark(remarksCell, "error"); }
+        else { mark(remarksCell, "error", true); }
     }
 
     if (
@@ -112,24 +124,15 @@ table.querySelectorAll("tr").forEach((row, index) => {
         }
 
         else { 
-            mark(serviceCell, "error");
+            mark(serviceCell, "error", true);
             mark(instructionsCell, "error");
          }
     }
 
     // Logic 4: Out of Scope is assigned to right contractors only
-    if (
-        service === "Out of Scope"
-    ) {
-        if (
-            !outOfScopeContractors.includes(contractor)
-        ) {
-            mark(serviceCell, "error")
-        }
-        else if (
-            workType !== "Inspect"
-        ) {
-            mark(workTypeCell, "error");
+    if (service === "Out of Scope") {
+        if (!outOfScopeContractors.includes(contractor)) {
+            mark(serviceCell, "error", true)
         }
 
         else {
@@ -140,15 +143,30 @@ table.querySelectorAll("tr").forEach((row, index) => {
     }
 
     // Logic 5: Out of Scope Contacts have Out of Scope only
-    if (
-        outOfScopeContractors.includes(contractor)
-    ) {
-        if (
-            service !== "Out of Scope"
-        ) {
-            mark(serviceCell, "error")
+    if (outOfScopeContractors.includes(contractor)) {
+        if (service !== "Out of Scope") {
+            mark(serviceCell, "error", true)
         }
     }
+
+    // Logic Alpha: Are services assigned to right work type
+    if (service in eventMapper) {
+        if (eventMapper[service] !== workType) {
+            mark(serviceCell, "warning", true);
+            mark(workTypeCell, "warning");
+        }
+        else {
+            mark(serviceCell);
+            mark(workTypeCell);
+        }
+    }
+
+    if (!(service in eventMapper)) {
+        mark(serviceCell, "unknown");
+        mark(workTypeCell, "unknown");
+    }
+
+    // Logic Beta: Are services assigned to right contractor
 
     // And at the end, let's see how many totalEvents we have
     totalEvents++;
@@ -156,14 +174,35 @@ table.querySelectorAll("tr").forEach((row, index) => {
 
 // Functions
 // Marker for errors or correct values
-function mark(element, type="non-error") {
+function mark(element, type="non-error", increase=false) {
     let color = "green";
-    if (type == "error") { color = "red"; errorCounts++ }
+    if (type == "error") { 
+        color = "red"; 
+        if (increase) {
+            errorCounts++;
+        } 
+    }
+    else if (type == "warning") { 
+        color = "orange"; 
+        if (increase) { 
+            warningCounts++; 
+        }
+    }
+
+    else if (type == "unknown") {
+        color = "blue";
+    }
+
     element.style.backgroundColor = color;
     element.style.color = "white";
+
+    if (color == "orange") {
+        element.style.color = "black";
+    }
 }
 
 // Showing the important information at the end
 alert(`Hey Man, below are the stats
        > Total Events are: ${totalEvents}
-       > Total Warnings are: ${errorCounts}`);
+       > Total Errors are: ${errorCounts}
+       > Total Warnings are: ${warningCounts}`);
