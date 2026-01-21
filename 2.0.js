@@ -21,14 +21,40 @@ const outOfScopeContractors = ["Humber IT", "Support Services", "GE", "Bio-Medic
 
 // Dictionary/Object to map the regular and most common services
 const eventMapper = {
+    // UAF
     "Toilet Blocked": "Urgent AF",
-    "Out of Scope": "Inspect",
-    "Office Furniture (Desks, Chairs, Tables, Cabinet)": "Routine SF",
+    "Elevators": "Urgent AF",
+    
+    // USF
     "Nurse Call": "Urgent SF",
     "Fridge/Freezer": "Urgent SF",
     "Sterilizers": "Urgent SF",
-    "Room Too Hot": "Routine SF"
+    "Pneumatic Tube": "Urgent SF",
+    "Patient Wandering": "Urgent SF",
+    "Code Brown, Hazmat": "Urgent SF",
+    
+    // RSF
+    "Office Furniture (Desks, Chairs, Tables, Cabinet)": "Routine SF",
+    "Room Too Hot": "Routine SF",
+    "Room Too Hot": "Routine SF",
+    "Bed Management": "Routine SF",
+    "Medical Chairs (Geri, Bariatric, Commodes)": "Routine SF",
+    "Int. Repair Other": "Routine SF",
+    "Wheelchairs/Walkers": "Routine SF",
+    "Patient Room/Lounge Furniture": "Routine SF",
+    
+    // Others
+    "Out of Scope": "Inspect",
+    "Keys": "General Facility Service",
 }
+
+// Factory method to create the fields for row table
+const createField = (cell) => ({
+  cell,
+  data: cell?.textContent.trim() || "",
+  error: false
+});
+
 
 // Main Function to handle all the errors in the events
 table.querySelectorAll("tr").forEach((row, index) => {
@@ -38,35 +64,27 @@ table.querySelectorAll("tr").forEach((row, index) => {
     // If something, fetch all the data
     const cells = row.querySelectorAll("td");
 
-    // Event Elements
-    const eventCell = cells[0];
-    const statusCell = cells[1];
-    const locationCell = cells[2];
-    const serviceCell = cells[3];
-    const workTypeCell = cells[4];
-    const contractorCell = cells[5];
-    const operativeCell = cells[6];
-    const instructionsCell = cells[7];
-    const remarksCell = cells[8];
-    const reportedByCell = cells[9];
-
-    // Now, we have the element; Let's store the values of each cell
-    const event = eventCell.textContent.trim();
-    const status = statusCell.textContent.trim();
-    const location = locationCell.textContent.trim();
-    const service = serviceCell.textContent.trim();
-    const workType = workTypeCell.textContent.trim();
-    const contractor = contractorCell.textContent.trim();
-    const operative = operativeCell.textContent.trim();
-    const instructions = instructionsCell.textContent.trim();
-    const remarks = remarksCell.textContent.trim();
-    const reportedBy = reportedByCell.textContent.trim();
+    const fields = {
+        event: createField(cells[0]),
+        status: createField(cells[1]),
+        location: createField(cells[2]),
+        service: createField(cells[3]),
+        workType: createField(cells[4]),
+        contractor: createField(cells[5]),
+        operative: createField(cells[6]),
+        instructions: createField(cells[7]),
+        remarks: createField(cells[8]),
+        reportedBy: createField(cells[9])
+    }; 
 
     // Logic 1: Checking if required cells are empty (Remarks)
     if (
         remarks === "" ||
         remarks === "\u00A0"
-    ) { mark(remarksCell, "error", true); }
+    ) { 
+        mark(remarksCell, "error", true); 
+        remarksError = true;
+    }
 
     // Logic 2: Checking the missing operative with the condition (was even required or not)
     if (
