@@ -34,7 +34,7 @@ const EVENT_GROUPS = {
         "Sink",
         "Humidifiers",
         "Macerators",
-
+        "Water System Cold",
     ],
 
     // USF
@@ -55,7 +55,6 @@ const EVENT_GROUPS = {
         "Transvac - Trash",
         "Transvac - Linen",
         "Neg Pressure RMs Activate/Deactivate",
-
     ],
 
     // RSF
@@ -84,13 +83,16 @@ const EVENT_GROUPS = {
         "Keys": "General Facility Service",
         "Code White": "Emergency SF",
         "Code Blue": "Emergency SF",
+        "General Facility": "General Facility Service",
     },
 
     // Shady
     "Shady": [
         "Lighting Internal",
         "Sink",
-        "Door Internal"
+        "Door Internal",
+        "Outlets",
+        "Toilet Other",
     ]
 };
 
